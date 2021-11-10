@@ -37,14 +37,14 @@ Wire.begin(indirizzo);
 
 Impostare *gli Handle* per gli eventi I2c:
 ```c
-Wire.onReceive(onReceiveSusiOverI2c);
-Wire.onRequest(onRequestSusiOverI2c);
+Wire.onReceive(onReceiveWireSusi);
+Wire.onRequest(onRequestWireSusi);
 ```
 
 
 **Elaborare i dati ricevuti:**
 ```c
-int8_t processSusiOverI2c(void);
+int8_t processWireSusi(void);
 ```
 **E' necessario invocarlo piu' volte possibile** nel 'loop' del codice: decodifica i pacchetti SUSI ricevuti.
 - Input:
@@ -63,9 +63,9 @@ Le seguenti funzioni sono a disposizione del dispositivo Master per comandare gl
 ------------
 
 ```c
-int8_t	sendCommandSusiOverI2c(uint8_t I2C_Address, uint8_t FirstByte, uint8_t SecondByte);
+int8_t	sendCommandWireSusi(uint8_t I2C_Address, uint8_t FirstByte, uint8_t SecondByte);
 ```
-*sendCommandSusiOverI2c* spedisce un comando Susi ad uno Slave, NON e' necessaria una risposta dallo Slave.</br>
+*sendCommandWireSusi* spedisce un comando Susi ad uno Slave, NON e' necessaria una risposta dallo Slave.</br>
 - Input:
   - L'indirizzo del dispositivo I2c Ricevente
   - Il Primo Byte del Messaggio ( Comando )
@@ -76,9 +76,9 @@ int8_t	sendCommandSusiOverI2c(uint8_t I2C_Address, uint8_t FirstByte, uint8_t Se
 ------------
 
 ```c
-int16_t	readCVsSusiOverI2c(uint8_t I2C_Address, uint16_t cvAddress);
+int16_t	readCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress);
 ```
-*readCVsSusiOverI2c* richiede ad uno Slave di *Leggere* una CV.</br>
+*readCVsWireSusi* richiede ad uno Slave di *Leggere* una CV.</br>
 - Input:
   - L'indirizzo del dispositivo I2c Ricevente
   - L'indirizzo della CV da leggere
@@ -88,9 +88,9 @@ int16_t	readCVsSusiOverI2c(uint8_t I2C_Address, uint16_t cvAddress);
 ------------
 
 ```c
-int16_t	writeCVsSusiOverI2c(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValue);
+int16_t	writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValue);
 ```
-*writeCVsSusiOverI2c* richiede ad uno Slave di *Scrivere* una CV.</br>
+*writeCVsWireSusi* richiede ad uno Slave di *Scrivere* una CV.</br>
 - Input:
   - L'indirizzo del dispositivo I2c Ricevente
   - L'indirizzo della CV da scrivere
@@ -106,7 +106,7 @@ Le seguenti funzioni CallBack sono **facoltative** (definiti come 'extern' alla 
 ------------
 
 ```c
-void onReceiveSusiOverI2cExternalHanlde(uint8_t nBytes);
+void onReceiveWireSusiExternalHanlde(uint8_t nBytes);
 ```
 Handle **Facoltativo**, permette all'utente di definire azioni in caso di comandi non riconosciuti (dimensione maggiore di 3):
 * Input:
