@@ -24,7 +24,7 @@ Lo Slave SUSI sara' il Master per il bus I2c; la libreria permette di avere tutt
 ------------
 
 # API Libreria
-Le Api per la libreria sono nel file "[readme.md](https://github.com/TheFidax/WireSusi/blob/master/src/readme.md)" disponibile sotto la cartella '[src](https://github.com/TheFidax/WireSusi/tree/master/src)'.</br>
+Le Api per la libreria sono nel file "[readme.md](https://github.com/TheFidax/WireSusi/blob/main/src/readme.md)" disponibile sotto la cartella '[src](https://github.com/TheFidax/WireSusi/tree/main/src)'.</br>
 
 ------------
 
