@@ -175,6 +175,7 @@ void onReceiveWireSusi(int nBytes) {										// Handle che viene invocato alla 
 			Rcn600Message *p = searchFreeMessage();							// Cerco uno slot libero dove salvare il messaggio
 
 			if (p != NULL) {												// Slot libero trovato
+				p->nextMessage = NULL;										// Lo imposto come ultimo della Coda
 				p->Byte[0] = Wire.read();									// Acquisisco il primo Byte ( Comando )
 				p->Byte[1] = Wire.read();									// Acquisisco il secondo Byte ( Argomento )
 
@@ -184,8 +185,7 @@ void onReceiveWireSusi(int nBytes) {										// Handle che viene invocato alla 
 				while (Wire.available() > 0) {								// Pulisco il Buffer 
 					Wire.read();
 				}
-			}												
-
+			}	
 			break;
 		}
 		case CVs_MESSAGE_DIMENSION: {										// 3 Bytes: comando SUSI CV -> Processare subito!		
