@@ -1,4 +1,4 @@
-/* LIB_VERSION: 0.0.1 */
+/* LIB_VERSION: 0.1.1 */
 
 #include "WireSusi.h"														// Inclusione del Header
 
@@ -25,6 +25,7 @@ Rcn600Message					_Buffer[SUSI_BUFFER_LENGTH];				// Buffer dove salvare i messa
 #define	SLAVE_CV_OPERATION_WAITING_TIME		100								// Tempo (in uS) che il Master attende mentre lo Slave esegue un'operazione sulle CVs
 #define CVs_MESSAGE_DIMENSION				(uint8_t)3						// Dimensione Messaggio Manipolazione CVs
 #define	WRITE_CV_BIT						0b1000000000000000				// Identifica il bit 15, se e' 1 allora si vuole scrivere una CV
+
 typedef struct {															// Manipolazione CVs
 	uint16_t	cvAddress;													// Inirizzo CV & bit di Lettura/Scrittura (bit 15) -> massimo indirizzo CV: 32768
 	uint8_t		cvValue;													// Valore da scrivere/leggere
@@ -166,7 +167,7 @@ void onReceiveWireSusi(int nBytes) {										// Handle che viene invocato alla 
 	static uint8_t initNeeded = 1;											// Alla prima invocazione devo "pulire" il buffer di acquisizione
 	if (initNeeded) {														// Controllo se e' la prima invocazione dell'evento
 		CLEAR_BUFFER;														// Pulisco il buffer
-		initNeeded = 0;														// Inizializzazione non piu' necessario
+		initNeeded = 0;														// Inizializzazione non piu' necessaria
 	}
 
 	switch (nBytes) {														// In base a quanti Bytes ho ricevuto dal Master eseguo un azione
