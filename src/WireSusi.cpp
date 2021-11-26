@@ -8,7 +8,7 @@
 /* TIPI DI DATI E VARIABILI GLOBALI PRIVATE */
 #define SUSI_MESSAGE_DIMENSION		(uint8_t)2								// Dimensione Messaggi SUSI su I2c
 #define SUSI_BUFFER_LENGTH			5										// lunghezza buffer dove sono contenuti i messaggi
-#define FREE_MESSAGE_SLOT			(Rcn600Message*)65536					// Valore simbolico per indicare che uno slot del buffer e' libero
+#define FREE_MESSAGE_SLOT			(Rcn600Message*)65535					// Valore simbolico per indicare che uno slot del buffer e' libero
 
 typedef struct message{														// Dato che rappresenta un Messaggio SUSI
 	uint8_t Byte[2];														// I 2 Byte che compongono un Messaggio RCN600
