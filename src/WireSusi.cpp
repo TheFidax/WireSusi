@@ -8,16 +8,16 @@
 /* TIPI DI DATI E VARIABILI GLOBALI PRIVATE */
 #define SUSI_MESSAGE_DIMENSION		(uint8_t)2								// Dimensione Messaggi SUSI su I2c
 #define SUSI_BUFFER_LENGTH			5										// lunghezza buffer dove sono contenuti i messaggi
-#define FREE_MESSAGE_SLOT			(SUSI_Message*)0						// Valore simbolico per indicare che uno slot del buffer e' libero
+#define FREE_MESSAGE_SLOT			(Rcn600Message*)65536					// Valore simbolico per indicare che uno slot del buffer e' libero
 
 typedef struct message{														// Dato che rappresenta un Messaggio SUSI
-	uint8_t  firstByte;														// Primo Byte del Messaggio (da RCN600)
-	uint8_t  secondByte;													// Secondo Byte del Messaggio (da RCN600)
-	struct message* nextMessage;											// Puntatore al prossimo messaggio ricevuto dal Master
-} SUSI_Message;
+	uint8_t Byte[2];														// I 2 Byte che compongono un Messaggio RCN600
 
-SUSI_Message					*_BufferPointer = NULL;						// Puntatore per scorrere il buffer dei messaggi ricevuti
-SUSI_Message					_Buffer[SUSI_BUFFER_LENGTH];				// Buffer dove salvare i messaggi ricevuti in attesa di decodifica
+	struct message* nextMessage;											// Puntatore al prossimo messaggio ricevuto dal Master
+} Rcn600Message;
+
+Rcn600Message*					_BufferPointer = NULL;						// Puntatore per scorrere il buffer dei messaggi ricevuti
+Rcn600Message					_Buffer[SUSI_BUFFER_LENGTH];				// Buffer dove salvare i messaggi ricevuti in attesa di decodifica
 #define	CLEAR_BUFFER			for(uint8_t i = 0; i < SUSI_BUFFER_LENGTH; ++i) {	_Buffer[i].nextMessage = FREE_MESSAGE_SLOT;	}		// Pulisce il Buffer dei Messaggi
 
 /* Manipolazione CVs */
@@ -36,9 +36,9 @@ CVs_Message _cvMessage;														// Variabile privata per la gestione delle 
 
 	/* Prototipi */
 
-SUSI_Message* searchFreeMessage(void);										// Cerca uno slot dove salvare un messaggio SUSI
-void setNextMessage(SUSI_Message* nextMessage);								// Mette in coda di elaborazione uno slot dove e' stato salvato un messaggio
-static int ConvertTwosComplementByteToInteger(char rawValue);				// converte una variabile a 8bit in complemento a due in un intero
+Rcn600Message*	searchFreeMessage(void);									// Cerca uno slot dove salvare un messaggio SUSI
+void			setNextMessage(Rcn600Message* nextMessage);					// Mette in coda di elaborazione uno slot dove e' stato salvato un messaggio
+static int		ConvertTwosComplementByteToInteger(char rawValue);			// converte una variabile a 8bit in complemento a due in un intero
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ int16_t writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValu
 
 	/* Gestione Buffer */
 
-SUSI_Message* searchFreeMessage(void) {
+Rcn600Message* searchFreeMessage(void) {
 	for (uint8_t i = 0; i < SUSI_BUFFER_LENGTH; ++i) {
 		if (_Buffer[i].nextMessage == FREE_MESSAGE_SLOT) {
 			return &_Buffer[i];
@@ -142,8 +142,8 @@ SUSI_Message* searchFreeMessage(void) {
 	return NULL;
 }
 
-void setNextMessage(SUSI_Message* nextMessage) {
-	SUSI_Message* p = _BufferPointer;
+void setNextMessage(Rcn600Message* nextMessage) {
+	Rcn600Message* p = _BufferPointer;
 
 	if (p != NULL) {	// Ce'e' Almeno un messaggio in coda 
 		while (p->nextMessage != NULL) {
@@ -171,11 +171,11 @@ void onReceiveWireSusi(int nBytes) {										// Handle che viene invocato alla 
 
 	switch (nBytes) {														// In base a quanti Bytes ho ricevuto dal Master eseguo un azione
 		case SUSI_MESSAGE_DIMENSION: {										// 2 Bytes: comando SUSI normale
-			SUSI_Message *p = searchFreeMessage();							// Cerco uno slot libero dove salvare il messaggio
+			Rcn600Message *p = searchFreeMessage();							// Cerco uno slot libero dove salvare il messaggio
 
 			if (p != NULL) {												// Slot libero trovato
-				p->firstByte = Wire.read();									// Acquisisco il primo Byte ( Comando )
-				p->secondByte = Wire.read();								// Acquisisco il secondo Byte ( Argomento )
+				p->Byte[0] = Wire.read();									// Acquisisco il primo Byte ( Comando )
+				p->Byte[1] = Wire.read();									// Acquisisco il secondo Byte ( Argomento )
 
 				setNextMessage(p);											// Metto il messaggio acquisito in coda di decodifica
 			}
@@ -255,71 +255,71 @@ int8_t processWireSusi(void) {
 		if (_BufferPointer != NULL) {		//controllo che siano stati ricevuti dei messaggi
 
 			if (notifySusiRawMessage) {
-				notifySusiRawMessage(_BufferPointer->firstByte, _BufferPointer->secondByte);
+				notifySusiRawMessage(_BufferPointer->Byte[0], _BufferPointer->Byte[1]);
 			}
 
 			/* Devo controllare il valore del primo Byte */
-			switch (_BufferPointer->firstByte) {
+			switch (_BufferPointer->Byte[0]) {
 				case 96: {
 					/* "Funktionsgruppe 1" : 0110-0000 (0x60 = 96) 0 0 0 F0 - F4 F3 F2 F1 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_0_4, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_0_4, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 97: {
 					/* "Funktionsgruppe 2" : 0110-0001 (0x61 = 97) F12 F11 F10 F9 - F8 F7 F6 F5 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_5_12, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_5_12, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 98: {
 					/* "Funktionsgruppe 3" : 0110-0010 (0x62 = 98) F20 F19 F18 F17 - F16 F15 F14 F13 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_13_20, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_13_20, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 99: {
 					/* "Funktionsgruppe 4" : 0110-0011 (0x63 = 99) F28 F27 F26 F25 - F24 F23 F22 F21 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_21_28, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_21_28, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 100: {
 					/* "Funktionsgruppe 5" : 0110-0100 (0x64 = 100) F36 F35 F34 F33 - F32 F31 F30 F29 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_29_36, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_29_36, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 101: {
 					/* "Funktionsgruppe 6" : 0110-0101 (0x65 = 101) F44 F43 F42 F41 - F40 F39 F38 F37 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_37_44, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_37_44, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 102: {
 					/* "Funktionsgruppe 7" : 0110-0110 (0x66 = 102) F52 F51 F50 F49 - F48 F47 F46 F45 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_45_52, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_45_52, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 103: {
 					/* "Funktionsgruppe 8" : 0110-0111 (0x67 = 103) F60 F59 F58 F57 - F56 F55 F54 F53 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_53_60, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_53_60, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 104: {
 					/* "Funktionsgruppe 9" : 0110-1000 (0x68 = 104) F68 F67 F66 F65 - F64 F63 F62 F61 */
 					if (notifySusiFunc) {
-						notifySusiFunc(SUSI_FN_61_68, _BufferPointer->secondByte);
+						notifySusiFunc(SUSI_FN_61_68, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
@@ -337,9 +337,9 @@ int8_t processWireSusi(void) {
 
 					static uint8_t functionNumber, funcState;
 
-					funcState = _BufferPointer->secondByte & 0x80;					// leggo il valore dello stato 'D' ()
+					funcState = _BufferPointer->Byte[1] & 0x80;					// leggo il valore dello stato 'D' ()
 
-					functionNumber = _BufferPointer->secondByte & 0b01111111;		// elimino il bit piu' significativo (bit7)
+					functionNumber = _BufferPointer->Byte[1] & 0b01111111;		// elimino il bit piu' significativo (bit7)
 
 					if (notifySusiBinaryState) {
 						if (functionNumber == 0) {
@@ -391,18 +391,18 @@ int8_t processWireSusi(void) {
 					*	H = bit di qualita' superiore dello stato binario numero alto 1 ... 32767
 					*/
 
-					SUSI_Message* next = _BufferPointer->nextMessage;
+					Rcn600Message* next = _BufferPointer->nextMessage;
 					if (next != NULL) {
-						if (next->firstByte == 111) {					// Posso eseguire il comando solo se ho ricevuto sia il Byte piu' significativo che quello meno significativo
+						if (next->Byte[0] == 111) {					// Posso eseguire il comando solo se ho ricevuto sia il Byte piu' significativo che quello meno significativo
 							if (notifySusiBinaryState) {			// Controllo se e' presente il metodo per gestire il comando
 								static uint16_t Command;
 								static uint8_t State;
 
-								Command = next->secondByte;				// memorizzo i bit "piu' significativ"
+								Command = next->Byte[1];				// memorizzo i bit "piu' significativ"
 								Command = Command << 7;					// sposto i bit 7 posti a 'sinistra'
-								Command |= _BufferPointer->secondByte;				// aggiungo i 7 bit "meno significativi"
+								Command |= _BufferPointer->Byte[1];				// aggiungo i 7 bit "meno significativi"
 
-								State = bitRead(_BufferPointer->secondByte, 7);
+								State = bitRead(_BufferPointer->Byte[1], 7);
 
 								notifySusiBinaryState(Command, State);
 							}
@@ -426,28 +426,28 @@ int8_t processWireSusi(void) {
 					*	Un bit = 1 significa che l'uscita corrispondente è attivata.
 					*/
 					if (notifySusiAux) {
-						notifySusiAux(SUSI_AUX_1_8, _BufferPointer->secondByte);
+						notifySusiAux(SUSI_AUX_1_8, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 65: {
 					/*	"Direktbefehl 2" : 0100-0001 (0x41 = 65) X16 X15 X14 X13 - X12 X11 X10 X9 */
 					if (notifySusiAux) {
-						notifySusiAux(SUSI_AUX_9_16, _BufferPointer->secondByte);
+						notifySusiAux(SUSI_AUX_9_16, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 66: {
 					/*	"Direktbefehl 3" : 0100-0010 (0x42 = 66) X24 X23 X22 X21 - X20 X19 X18 X17 */
 					if (notifySusiAux) {
-						notifySusiAux(SUSI_AUX_17_24, _BufferPointer->secondByte);
+						notifySusiAux(SUSI_AUX_17_24, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 67: {
 					/*	"Direktbefehl 4" : 0100-0011 (0x43 = 67) X32 X31 X30 X29 - X28 X27 X26 X25 */
 					if (notifySusiAux) {
-						notifySusiAux(SUSI_AUX_25_32, _BufferPointer->secondByte);
+						notifySusiAux(SUSI_AUX_25_32, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
@@ -464,7 +464,7 @@ int8_t processWireSusi(void) {
 					*	I bit da 1 a 7 sono per uso futuro, Applicazioni riservate.
 					*/
 					if (notifySusiTriggerPulse) {
-						notifySusiTriggerPulse(_BufferPointer->secondByte);
+						notifySusiTriggerPulse(_BufferPointer->Byte[1]);
 					}
 					break;
 				}
@@ -482,7 +482,7 @@ int8_t processWireSusi(void) {
 					*	significa un feed back come e' possibile con le moderne locomotive elettriche.
 					*/
 					if (notifySusiMotorCurrent) {
-						notifySusiMotorCurrent(ConvertTwosComplementByteToInteger(_BufferPointer->secondByte));
+						notifySusiMotorCurrent(ConvertTwosComplementByteToInteger(_BufferPointer->Byte[1]));
 					}
 					break;
 				}
@@ -511,11 +511,11 @@ int8_t processWireSusi(void) {
 					*	L'uso dei comandi 0x24 e 0x25 e' conforme allo standard.
 					*/
 					if (notifySusiRealSpeed) {
-						if (bitRead(_BufferPointer->secondByte, 7) == 1) {
-							notifySusiRealSpeed(_BufferPointer->secondByte - 128, SUSI_DIR_FWD);
+						if (bitRead(_BufferPointer->Byte[1], 7) == 1) {
+							notifySusiRealSpeed(_BufferPointer->Byte[1] - 128, SUSI_DIR_FWD);
 						}
 						else {
-							notifySusiRealSpeed(_BufferPointer->secondByte, SUSI_DIR_REV);
+							notifySusiRealSpeed(_BufferPointer->Byte[1], SUSI_DIR_REV);
 						}
 					}
 					break;
@@ -532,11 +532,11 @@ int8_t processWireSusi(void) {
 					*	R = senso di marcia con R = 0 indietro e R = 1 avanti
 					*/
 					if (notifySusiRequestSpeed) {
-						if (bitRead(_BufferPointer->secondByte, 7) == 1) {
-							notifySusiRequestSpeed(_BufferPointer->secondByte - 128, SUSI_DIR_FWD);
+						if (bitRead(_BufferPointer->Byte[1], 7) == 1) {
+							notifySusiRequestSpeed(_BufferPointer->Byte[1] - 128, SUSI_DIR_FWD);
 						}
 						else {
-							notifySusiRequestSpeed(_BufferPointer->secondByte, SUSI_DIR_REV);
+							notifySusiRequestSpeed(_BufferPointer->Byte[1], SUSI_DIR_REV);
 						}
 					}
 					break;
@@ -556,7 +556,7 @@ int8_t processWireSusi(void) {
 					*/
 
 					if (notifySusiMotorLoad) {
-						notifySusiMotorLoad(ConvertTwosComplementByteToInteger(_BufferPointer->secondByte));
+						notifySusiMotorLoad(ConvertTwosComplementByteToInteger(_BufferPointer->Byte[1]));
 					}
 					break;
 				}
@@ -579,11 +579,11 @@ int8_t processWireSusi(void) {
 					*	con R = 0 per indietro e R = 1 per avanti
 					*/
 					if (notifySusiRealSpeed) {
-						if (bitRead(_BufferPointer->secondByte, 7) == 1) {
-							notifySusiRealSpeed(_BufferPointer->secondByte - 128, SUSI_DIR_FWD);
+						if (bitRead(_BufferPointer->Byte[1], 7) == 1) {
+							notifySusiRealSpeed(_BufferPointer->Byte[1] - 128, SUSI_DIR_FWD);
 						}
 						else {
-							notifySusiRealSpeed(_BufferPointer->secondByte, SUSI_DIR_REV);
+							notifySusiRealSpeed(_BufferPointer->Byte[1], SUSI_DIR_REV);
 						}
 					}
 					break;
@@ -614,11 +614,11 @@ int8_t processWireSusi(void) {
 					*	Soprattutto, e' importante che i comandi per la velocita' effettiva e di destinazione si comportino allo stesso modo.
 					*/
 					if (notifySusiRequestSpeed) {
-						if (bitRead(_BufferPointer->secondByte, 7) == 1) {
-							notifySusiRequestSpeed(_BufferPointer->secondByte - 128, SUSI_DIR_FWD);
+						if (bitRead(_BufferPointer->Byte[1], 7) == 1) {
+							notifySusiRequestSpeed(_BufferPointer->Byte[1] - 128, SUSI_DIR_FWD);
 						}
 						else {
-							notifySusiRequestSpeed(_BufferPointer->secondByte, SUSI_DIR_REV);
+							notifySusiRequestSpeed(_BufferPointer->Byte[1], SUSI_DIR_REV);
 						}
 					}
 					break;
@@ -643,56 +643,56 @@ int8_t processWireSusi(void) {
 					*	Gli otto comandi di questo gruppo consentono la trasmissione di otto diversi valori analogici in modalita' digitale.
 					*/
 					if (notifySusiAnalogFunction) {
-						notifySusiAnalogFunction(SUSI_AN_FN_0_7, _BufferPointer->secondByte);
+						notifySusiAnalogFunction(SUSI_AN_FN_0_7, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 41: {
 					/*	"Analogfunktionsgruppe 2" : 0010-1001 (0x29 = 41) A15 A14 A13 A12 - A11 A10 A9 A8 */
 					if (notifySusiAnalogFunction) {
-						notifySusiAnalogFunction(SUSI_AN_FN_8_15, _BufferPointer->secondByte);
+						notifySusiAnalogFunction(SUSI_AN_FN_8_15, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 42: {
 					/*	"Analogfunktionsgruppe 3" : 0010-1010 (0x2A = 42) A23 A22 A21 A20 - A19 A18 A17 A16 */
 					if (notifySusiAnalogFunction) {
-						notifySusiAnalogFunction(SUSI_AN_FN_16_23, _BufferPointer->secondByte);
+						notifySusiAnalogFunction(SUSI_AN_FN_16_23, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 43: {
 					/*	"Analogfunktionsgruppe 4" : 0010-1011 (0x2B = 43) A31 A30 A29 A28 - A27 A26 A25 A24 */
 					if (notifySusiAnalogFunction) {
-						notifySusiAnalogFunction(SUSI_AN_FN_24_31, _BufferPointer->secondByte);
+						notifySusiAnalogFunction(SUSI_AN_FN_24_31, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 44: {
 					/*	"Analogfunktionsgruppe 5" : 0010-1100 (0x2C = 44) A39 A38 A37 A36 - A35 A34 A33 A32 */
 					if (notifySusiAnalogFunction) {
-						notifySusiAnalogFunction(SUSI_AN_FN_32_39, _BufferPointer->secondByte);
+						notifySusiAnalogFunction(SUSI_AN_FN_32_39, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 45: {
 					/*	"Analogfunktionsgruppe 6" : 0010-1101 (0x2D = 45) A47 A46 A45 A44 - A43 A42 A42 A40 */
 					if (notifySusiAnalogFunction) {
-						notifySusiAnalogFunction(SUSI_AN_FN_40_47, _BufferPointer->secondByte);
+						notifySusiAnalogFunction(SUSI_AN_FN_40_47, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 46: {
 					/*	"Analogfunktionsgruppe 7" : 0010-1110 (0x2E = 46) A55 A54 A53 A52 - A51 A50 A49 A48 */
 					if (notifySusiAnalogFunction) {
-						notifySusiAnalogFunction(SUSI_AN_FN_48_55, _BufferPointer->secondByte);
+						notifySusiAnalogFunction(SUSI_AN_FN_48_55, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				case 47: {
 					/*	"Analogfunktionsgruppe 8" : 0010-1111 (0x2F = 47) A63 A62 A61 A60 - A59 A58 A57 A56 */
 					if (notifySusiAnalogFunction) {
-						notifySusiAnalogFunction(SUSI_AN_FN_56_63, _BufferPointer->secondByte);
+						notifySusiAnalogFunction(SUSI_AN_FN_56_63, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
@@ -712,7 +712,7 @@ int8_t processWireSusi(void) {
 					*	- Bit 7: Volume ridotto
 					*/
 					if (notifySusiAnalogDirectCommand) {
-						notifySusiAnalogDirectCommand(1, _BufferPointer->secondByte);
+						notifySusiAnalogDirectCommand(1, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
@@ -732,7 +732,7 @@ int8_t processWireSusi(void) {
 					*	- Bit 3-7: riservato
 					*/
 					if (notifySusiAnalogDirectCommand) {
-						notifySusiAnalogDirectCommand(2, _BufferPointer->secondByte);
+						notifySusiAnalogDirectCommand(2, _BufferPointer->Byte[1]);
 					}
 					break;
 				}
@@ -747,7 +747,7 @@ int8_t processWireSusi(void) {
 					*	I dati possono avere qualsiasi valore. Il comando puo' essere utilizzato come gap filler o a scopo di test.
 					*/
 					if (notifySusiNoOperation) {
-						notifySusiNoOperation(_BufferPointer->secondByte);
+						notifySusiNoOperation(_BufferPointer->Byte[1]);
 					}
 					break;
 				}
@@ -774,15 +774,15 @@ int8_t processWireSusi(void) {
 					*	Se i due comandi non si susseguono direttamente, devono essere ignorati.
 					*/
 
-					SUSI_Message* next = _BufferPointer->nextMessage;
+					Rcn600Message* next = _BufferPointer->nextMessage;
 					if (next != NULL) {
-						if (next->firstByte == 95) {							//i byte di comando devono susseguirsi
+						if (next->Byte[0] == 95) {							//i byte di comando devono susseguirsi
 							if (notifySusiMasterAddress) {					// Controllo se e' presente il metodo per gestire il comando
 								static uint16_t MasterAddress;
 
-								MasterAddress = next->secondByte;				//memorizzo i bit "piu' significativ"
+								MasterAddress = next->Byte[1];				//memorizzo i bit "piu' significativ"
 								MasterAddress = MasterAddress << 8;			//sposto i bit 7 posti a 'sinistra'
-								MasterAddress |= _BufferPointer->secondByte;	//aggiungo i 7 bit "meno significativi"
+								MasterAddress |= _BufferPointer->Byte[1];	//aggiungo i 7 bit "meno significativi"
 
 								notifySusiMasterAddress(MasterAddress);
 							}
@@ -809,13 +809,13 @@ int8_t processWireSusi(void) {
 					*/
 
 					if (notifySusiControllModule) {
-						notifySusiControllModule(_BufferPointer->secondByte);
+						notifySusiControllModule(_BufferPointer->Byte[1]);
 					}
 					break;
 				}
 				default: {	// Messagio non Valido
 					// Aggiorno il puntatore del Buffer
-					SUSI_Message* p = _BufferPointer->nextMessage;
+					Rcn600Message* p = _BufferPointer->nextMessage;
 					_BufferPointer->nextMessage = FREE_MESSAGE_SLOT;
 					_BufferPointer = p;
 
@@ -824,7 +824,7 @@ int8_t processWireSusi(void) {
 			}
 
 			// Aggiorno il puntatore del Buffer
-			SUSI_Message* p = _BufferPointer->nextMessage;
+			Rcn600Message* p = _BufferPointer->nextMessage;
 			_BufferPointer->nextMessage = FREE_MESSAGE_SLOT;
 			_BufferPointer = p;
 
