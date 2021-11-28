@@ -1,4 +1,4 @@
-/* LIB_VERSION: 0.1.1 */
+/* LIB_VERSION: 0.1.2 */
 
 #include "WireSusi.h"														// Inclusione del Header
 
@@ -8,13 +8,15 @@
 /* TIPI DI DATI E VARIABILI GLOBALI PRIVATE */
 #define SUSI_MESSAGE_DIMENSION		(uint8_t)2								// Dimensione Messaggi SUSI su I2c
 #define SUSI_BUFFER_LENGTH			5										// lunghezza buffer dove sono contenuti i messaggi
-#define FREE_MESSAGE_SLOT			(Rcn600Message*)65535					// Valore simbolico per indicare che uno slot del buffer e' libero
 
 typedef struct message{														// Dato che rappresenta un Messaggio SUSI
 	uint8_t Byte[2];														// I 2 Byte che compongono un Messaggio RCN600
 
 	struct message* nextMessage;											// Puntatore al prossimo messaggio ricevuto dal Master
 } Rcn600Message;
+
+const Rcn600Message*			FREE_MESSAGE = (Rcn600Message*)(~0);		// Valore simbolico "opposto" a NULL
+#define FREE_MESSAGE_SLOT		(Rcn600Message*)FREE_MESSAGE				// Valore simbolico per indicare che uno Slot e' libero
 
 Rcn600Message*					_BufferPointer = NULL;						// Puntatore per scorrere il buffer dei messaggi ricevuti
 Rcn600Message					_Buffer[SUSI_BUFFER_LENGTH];				// Buffer dove salvare i messaggi ricevuti in attesa di decodifica
