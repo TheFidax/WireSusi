@@ -121,12 +121,7 @@ int16_t writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValu
     _cvMessage.cvAddress += (uint8_t)Wire.read();                                                       // Leggo gli 8 bit MENO significativi
     _cvMessage.cvValue = (uint8_t)Wire.read();                                                          // Leggo il valore della CV
 
-    Serial.print("Richiesti: ");  Serial.print(cvAddress); Serial.print(" "); Serial.println(cvValue);
-    Serial.print("Ricevuti: ");  Serial.print(_cvMessage.cvAddress); Serial.print(" "); Serial.println(_cvMessage.cvValue);
-
     _cvMessage.cvAddress &= ~(WRITE_CV_BIT);                                                            // Rimuovo il bit 15 (bit indicante la Scrittura) nel caso Non lo avesse gia' fatto lo Slave
-
-    Serial.print("Ricevuti Corretti: ");  Serial.print(_cvMessage.cvAddress); Serial.print(" "); Serial.println(_cvMessage.cvValue);
 
     if (_cvMessage.cvAddress == cvAddress) {                                                            // Controllo che la Comunicazione sia avvenuta Correttamente
         return _cvMessage.cvValue;                                                                      // Restituisco il valore letto della CV
@@ -139,29 +134,29 @@ int16_t writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValu
 
     /* Gestione Buffer */
 
-Rcn600Message* searchFreeMessage(void) {
-    for (uint8_t i = 0; i < SUSI_BUFFER_LENGTH; ++i) {
-        if (_Buffer[i].nextMessage == FREE_MESSAGE_SLOT) {
-            return &_Buffer[i];
+Rcn600Message* searchFreeMessage(void) {                                                                // Cerco uno Slot libero dove salvare i dati ricevuti
+    for (uint8_t i = 0; i < SUSI_BUFFER_LENGTH; ++i) {                                                  // Scorro tutto il Buffer
+        if (_Buffer[i].nextMessage == FREE_MESSAGE_SLOT) {                                              // Se uno slot risulta libero
+            return &_Buffer[i];                                                                         // Restituisco l'indirizzo di quello Slot
         }
+        //else {}                                                                                       // In caso contrario continuo a cercare
     }
 
-    /* Se non trovo uno slot libero ritorno NULL */
-    return NULL;
+    return NULL;                                                                                        // Se non ho trovato uno Slot libero restituisco NULL: Buffer pieno
 }
 
-void setNextMessage(Rcn600Message* nextMessage) {
-    Rcn600Message* p = _BufferPointer;
+void setNextMessage(Rcn600Message* nextMessage) {                                                       // Inserisco uno Slot nella coda di decodifica
+    Rcn600Message* p = _BufferPointer;                                                                  // Variabile che mi serve per scorrere la coda di decodifica senza interferire con essa
 
-    if (p != NULL) {	// Ce'e' Almeno un messaggio in coda 
-        while (p->nextMessage != NULL) {
-            p = p->nextMessage;
+    if (p != NULL) {                                                                                    // Ce'e' Almeno un messaggio in coda 
+        while (p->nextMessage != NULL) {                                                                // Scorro fino a trovare l'ultimo elemento
+            p = p->nextMessage;                                                                         
         }
 
         p->nextMessage = nextMessage;
     }
-    else {				// Ancora nessun messaggio pronto per la decodifica
-        _BufferPointer = nextMessage;
+    else {				                                                                                // In caso di nessun messaggio in coda
+        _BufferPointer = nextMessage;                                                                   // Questo sara' il prossimo messaggio in coda di decodifica
     }
 }
 
@@ -170,73 +165,73 @@ void setNextMessage(Rcn600Message* nextMessage) {
 
     /*	I2C EVENTS	*/
 
-void onReceiveWireSusi(int nBytes) {										// Handle che viene invocato alla ricezione di dati sul bus I2c
-    static uint8_t initNeeded = 1;											// Alla prima invocazione devo "pulire" il buffer di acquisizione
-    if (initNeeded) {														// Controllo se e' la prima invocazione dell'evento
-        CLEAR_BUFFER;														// Pulisco il buffer
-        initNeeded = 0;														// Inizializzazione non piu' necessaria
+void onReceiveWireSusi(int nBytes) {                                                                    // Handle che viene invocato alla ricezione di dati sul bus I2c
+    static uint8_t initNeeded = 1;                                                                      // Alla prima invocazione devo "pulire" il buffer di acquisizione
+    if (initNeeded) {                                                                                   // Controllo se e' la prima invocazione dell'evento
+        CLEAR_BUFFER;                                                                                   // Pulisco il buffer
+        initNeeded = 0;                                                                                 // Inizializzazione non piu' necessaria
     }
 
-    switch (nBytes) {														// In base a quanti Bytes ho ricevuto dal Master eseguo un azione
-        case SUSI_MESSAGE_DIMENSION: {										// 2 Bytes: comando SUSI normale
-            Rcn600Message *p = searchFreeMessage();							// Cerco uno slot libero dove salvare il messaggio
+    switch (nBytes) {                                                                                   // In base a quanti Bytes ho ricevuto dal Master eseguo un azione
+        case SUSI_MESSAGE_DIMENSION: {                                                                  // 2 Bytes: comando SUSI normale
+            Rcn600Message *p = searchFreeMessage();                                                     // Cerco uno slot libero dove salvare il messaggio
 
-            if (p != NULL) {												// Slot libero trovato
-                p->nextMessage = NULL;										// Lo imposto come ultimo della Coda
+            if (p != NULL) {                                                                            // Slot libero trovato
+                p->nextMessage = NULL;                                                                  // Lo imposto come ultimo della Coda
 
-                p->Byte[0] = Wire.read();									// Acquisisco il primo Byte ( Comando )
-                p->Byte[1] = Wire.read();									// Acquisisco il secondo Byte ( Argomento )
+                p->Byte[0] = Wire.read();                                                               // Acquisisco il primo Byte ( Comando )
+                p->Byte[1] = Wire.read();                                                               // Acquisisco il secondo Byte ( Argomento )
 
-                setNextMessage(p);											// Metto il messaggio acquisito in coda di decodifica
+                setNextMessage(p);                                                                      // Metto il messaggio acquisito in coda di decodifica
             }
-            else {															// Nessuno slot libero trovato
-                while (Wire.available() > 0) {								// Pulisco il Buffer 
+            else {                                                                                      // Nessuno slot libero trovato
+                while (Wire.available() > 0) {                                                          // Pulisco il Buffer 
                     Wire.read();
                 }
             }	
             break;
         }
-        case CVs_MESSAGE_DIMENSION: {										// 3 Bytes: comando SUSI CV -> Processare subito!		
-            _cvMessage.cvAddress = (uint8_t)Wire.read();					// Leggo gli 8 bit piu' significativi
-            _cvMessage.cvAddress = _cvMessage.cvAddress << 8;				// Sposto gli 8 bit
-            _cvMessage.cvAddress += (uint8_t)Wire.read();					// Leggo gli 8 bit MENO significativi
-            _cvMessage.cvValue = (uint8_t)Wire.read();						// Leggo il valore della CV
+        case CVs_MESSAGE_DIMENSION: {                                                                   // 3 Bytes: comando SUSI CV -> Processare subito!		
+            _cvMessage.cvAddress = (uint8_t)Wire.read();                                                // Leggo gli 8 bit piu' significativi
+            _cvMessage.cvAddress = _cvMessage.cvAddress << 8;                                           // Sposto gli 8 bit
+            _cvMessage.cvAddress += (uint8_t)Wire.read();                                               // Leggo gli 8 bit MENO significativi
+            _cvMessage.cvValue = (uint8_t)Wire.read();                                                  // Leggo il valore della CV
 
-            if (_cvMessage.cvAddress & WRITE_CV_BIT) {						// Controllo se si vuole scrivere la CV -> bit 15 = 1
-                if (notifySusiCVWrite) {									// Controllo che sia presente un sistema di memorizzazione CVs
-                    _cvMessage.cvAddress &= ~(WRITE_CV_BIT);				// Rimuovo il bit 15 (bit indicante la Scrittura)
+            if (_cvMessage.cvAddress & WRITE_CV_BIT) {                                                  // Controllo se si vuole scrivere la CV -> bit 15 = 1
+                if (notifySusiCVWrite) {                                                                // Controllo che sia presente un sistema di memorizzazione CVs
+                    _cvMessage.cvAddress &= ~(WRITE_CV_BIT);                                            // Rimuovo il bit 15 (bit indicante la Scrittura)
                     _cvMessage.cvValue = notifySusiCVWrite(_cvMessage.cvAddress, _cvMessage.cvValue);	// Scrivo la CV
                 }
-                else {														// Se non e' presente un sistema di memorizzazione CVs
-                    _cvMessage.cvValue = ERROR_CV_OPERATION;				// Utilizzzo un valore simbolico
+                else {                                                                                  // Se non e' presente un sistema di memorizzazione CVs
+                    _cvMessage.cvValue = ERROR_CV_OPERATION;                                            // Utilizzzo un valore simbolico
                 }
             }
-            else {															// bit 15 = 0 -> Lettura CVs
-                if (notifySusiCVRead) {										// Controllo che sia presente un sistema di memorizzazione CVs
-                    _cvMessage.cvValue = notifySusiCVRead(_cvMessage.cvAddress);	// Leggo il valore della CV
+            else {                                                                                      // bit 15 = 0 -> Lettura CVs
+                if (notifySusiCVRead) {                                                                 // Controllo che sia presente un sistema di memorizzazione CVs
+                    _cvMessage.cvValue = notifySusiCVRead(_cvMessage.cvAddress);                        // Leggo il valore della CV
                 }
-                else {														// Se non e' presente un sistema di memorizzazione CVs
-                    _cvMessage.cvValue = ERROR_CV_OPERATION;				// Utilizzzo un valore simbolico
+                else {                                                                                  // Se non e' presente un sistema di memorizzazione CVs
+                    _cvMessage.cvValue = ERROR_CV_OPERATION;                                            // Utilizzzo un valore simbolico
                 }
             }
             break;
         }
-        default: {															// Dimensioni non gestite, controllo se e' presente un Handle esterno	
-            if (onReceiveWireSusiExternalHanlde) {							// Controllo se l'utente ha definito un Handle esterno
-                onReceiveWireSusiExternalHanlde(nBytes);					// Chiamo l'Handle esterno
+        default: {                                                                                      // Dimensioni non gestite, controllo se e' presente un Handle esterno	
+            if (onReceiveWireSusiExternalHanlde) {                                                      // Controllo se l'utente ha definito un Handle esterno
+                onReceiveWireSusiExternalHanlde(nBytes);                                                // Chiamo l'Handle esterno
             }
 
-            while (Wire.available() > 0) {									// Se sono avanzati dati nel Buffer
-                Wire.read();												// Li elimino
+            while (Wire.available() > 0) {                                                              // Se sono avanzati dati nel Buffer
+                Wire.read();                                                                            // Li elimino
             }
         }
     }
 }
 
-void onRequestWireSusi(void) {												// Richiesti Byte dal Master: operazione sulle CVs
-    Wire.write((uint8_t)(_cvMessage.cvAddress >> 8));						// Invio gli 8 bit piu' significativi dell'indirizzo
-    Wire.write((uint8_t)(_cvMessage.cvAddress & 0xFF));						// Invio gli 8 bit MENO significativi dell'Indirizzo
-    Wire.write((uint8_t)_cvMessage.cvValue);								// Invio il valore Errato per verificare che la lettura sia avvenuta correttamente
+void onRequestWireSusi(void) {                                                                          // Richiesti Byte dal Master: operazione sulle CVs
+    Wire.write((uint8_t)(_cvMessage.cvAddress >> 8));                                                   // Invio gli 8 bit piu' significativi dell'indirizzo
+    Wire.write((uint8_t)(_cvMessage.cvAddress & 0xFF));                                                 // Invio gli 8 bit MENO significativi dell'Indirizzo
+    Wire.write((uint8_t)_cvMessage.cvValue);                                                            // Invio il valore Errato per verificare che la lettura sia avvenuta correttamente
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
