@@ -1,39 +1,39 @@
 /* LIB_VERSION: 0.1.3 */
 
-#include "WireSusi.h"														// Inclusione del Header
+#include "WireSusi.h"                                                                                   // Inclusione del Header
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* TIPI DI DATI E VARIABILI GLOBALI PRIVATE */
-#define SUSI_MESSAGE_DIMENSION		(uint8_t)2								// Dimensione Messaggi SUSI su I2c
-#define SUSI_BUFFER_LENGTH			5										// lunghezza buffer dove sono contenuti i messaggi
+#define SUSI_MESSAGE_DIMENSION              (uint8_t)2                                                  // Dimensione Messaggi SUSI su I2c
+#define SUSI_BUFFER_LENGTH                  5                                                           // lunghezza buffer dove sono contenuti i messaggi
 
-typedef struct message{														// Dato che rappresenta un Messaggio SUSI
-    uint8_t Byte[2];														// I 2 Byte che compongono un Messaggio RCN600
+typedef struct message{                                                                                 // Dato che rappresenta un Messaggio SUSI
+    uint8_t Byte[2];                                                                                    // I 2 Byte che compongono un Messaggio RCN600
 
-    struct message* nextMessage;											// Puntatore al prossimo messaggio ricevuto dal Master
+    struct message* nextMessage;                                                                        // Puntatore al prossimo messaggio ricevuto dal Master
 } Rcn600Message;
 
-const Rcn600Message*            FREE_MESSAGE = (Rcn600Message*)(~0);        // Valore simbolico "opposto" a NULL
-#define FREE_MESSAGE_SLOT       (Rcn600Message*)FREE_MESSAGE                // Valore simbolico per indicare che uno Slot e' libero
+const Rcn600Message*                        FREE_MESSAGE = (Rcn600Message*)(~0);                        // Valore simbolico "opposto" a NULL
+#define FREE_MESSAGE_SLOT                   (Rcn600Message*)FREE_MESSAGE                                // Valore simbolico per indicare che uno Slot e' libero
 
-Rcn600Message*					_BufferPointer = NULL;						// Puntatore per scorrere il buffer dei messaggi ricevuti
-Rcn600Message					_Buffer[SUSI_BUFFER_LENGTH];				// Buffer dove salvare i messaggi ricevuti in attesa di decodifica
-#define	CLEAR_BUFFER			for(uint8_t i = 0; i < SUSI_BUFFER_LENGTH; ++i) {	_Buffer[i].nextMessage = FREE_MESSAGE_SLOT;	}		// Pulisce il Buffer dei Messaggi
+Rcn600Message*                              _BufferPointer = NULL;                                      // Puntatore per scorrere il buffer dei messaggi ricevuti
+Rcn600Message                               _Buffer[SUSI_BUFFER_LENGTH];                                // Buffer dove salvare i messaggi ricevuti in attesa di decodifica
+#define	CLEAR_BUFFER                        for(uint8_t i = 0; i < SUSI_BUFFER_LENGTH; ++i) {	_Buffer[i].nextMessage = FREE_MESSAGE_SLOT;	}       // Pulisce il Buffer dei Messaggi
 
 /* Manipolazione CVs */
-#define ERROR_CV_OPERATION					129								// Valore Simbolico che rappresenta un Errore nella Gestione delle CVs
-#define	SLAVE_CV_OPERATION_WAITING_TIME		100								// Tempo (in uS) che il Master attende mentre lo Slave esegue un'operazione sulle CVs
-#define CVs_MESSAGE_DIMENSION				(uint8_t)3						// Dimensione Messaggio Manipolazione CVs
-#define	WRITE_CV_BIT						0b1000000000000000				// Identifica il bit 15, se e' 1 allora si vuole scrivere una CV
+#define ERROR_CV_OPERATION                  129                                                         // Valore Simbolico che rappresenta un Errore nella Gestione delle CVs
+#define	SLAVE_CV_OPERATION_WAITING_TIME     100                                                         // Tempo (in uS) che il Master attende mentre lo Slave esegue un'operazione sulle CVs
+#define CVs_MESSAGE_DIMENSION               (uint8_t)3                                                  // Dimensione Messaggio Manipolazione CVs
+#define	WRITE_CV_BIT                        0b1000000000000000                                          // Identifica il bit 15, se e' 1 allora si vuole scrivere una CV
 
-typedef struct {															// Manipolazione CVs
-    uint16_t	cvAddress;													// Inirizzo CV & bit di Lettura/Scrittura (bit 15) -> massimo indirizzo CV: 32768
-    uint8_t		cvValue;													// Valore da scrivere/leggere
+typedef struct {                                                                                        // Manipolazione CVs
+    uint16_t	cvAddress;                                                                              // Inirizzo CV & bit di Lettura/Scrittura (bit 15) -> massimo indirizzo CV: 32768
+    uint8_t		cvValue;                                                                                // Valore da scrivere/leggere
 } CVs_Message;
 
-CVs_Message _cvMessage;														// Variabile privata per la gestione delle CVs
+CVs_Message _cvMessage;                                                                                 // Variabile privata per la gestione delle CVs
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
