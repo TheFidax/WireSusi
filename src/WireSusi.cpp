@@ -155,7 +155,7 @@ void setNextMessage(Rcn600Message* nextMessage) {                               
 
         p->nextMessage = nextMessage;
     }
-    else {				                                                                                // In caso di nessun messaggio in coda
+    else {                                                                                              // In caso di nessun messaggio in coda
         _BufferPointer = nextMessage;                                                                   // Questo sara' il prossimo messaggio in coda di decodifica
     }
 }
