@@ -30,7 +30,7 @@ Rcn600Message                               _Buffer[SUSI_BUFFER_LENGTH];        
 
 typedef struct {                                                                                        // Manipolazione CVs
     uint16_t    cvAddress;                                                                              // Inirizzo CV & bit di Lettura/Scrittura (bit 15) -> massimo indirizzo CV: 32768
-    uint8_t	    cvValue;                                                                                // Valore da scrivere/leggere
+    uint8_t     cvValue;                                                                                // Valore da scrivere/leggere
 } CVs_Message;
 
 CVs_Message _cvMessage;                                                                                 // Variabile privata per la gestione delle CVs
