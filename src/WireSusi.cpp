@@ -39,9 +39,9 @@ CVs_Message _cvMessage;                                                         
 
     /* Prototipi */
 
-Rcn600Message*	searchFreeMessage(void);                                                                // Cerca uno slot dove salvare un messaggio SUSI
-void			setNextMessage(Rcn600Message* nextMessage);                                             // Mette in coda di elaborazione uno slot dove e' stato salvato un messaggio
-static int		ConvertTwosComplementByteToInteger(char rawValue);                                      // converte una variabile a 8bit in complemento a due in un intero
+Rcn600Message*  searchFreeMessage(void);                                                                // Cerca uno slot dove salvare un messaggio SUSI
+void            setNextMessage(Rcn600Message* nextMessage);                                             // Mette in coda di elaborazione uno slot dove e' stato salvato un messaggio
+static int      ConvertTwosComplementByteToInteger(char rawValue);                                      // converte una variabile a 8bit in complemento a due in un intero
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
