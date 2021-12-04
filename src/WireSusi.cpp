@@ -39,27 +39,27 @@ CVs_Message _cvMessage;														// Variabile privata per la gestione delle 
 
     /* Prototipi */
 
-Rcn600Message*	searchFreeMessage(void);									// Cerca uno slot dove salvare un messaggio SUSI
-void			setNextMessage(Rcn600Message* nextMessage);					// Mette in coda di elaborazione uno slot dove e' stato salvato un messaggio
-static int		ConvertTwosComplementByteToInteger(char rawValue);			// converte una variabile a 8bit in complemento a due in un intero
+Rcn600Message*	searchFreeMessage(void);                                                                // Cerca uno slot dove salvare un messaggio SUSI
+void			setNextMessage(Rcn600Message* nextMessage);                                             // Mette in coda di elaborazione uno slot dove e' stato salvato un messaggio
+static int		ConvertTwosComplementByteToInteger(char rawValue);                                      // converte una variabile a 8bit in complemento a due in un intero
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /*	MASTER	*/
 
-int8_t sendCommandWireSusi(uint8_t I2C_Address, uint8_t FirstByte, uint8_t SecondByte) {
-    uint8_t error;															// Variabile dove memorizzo se la comunicazione e' andata a buon fine
-    Wire.beginTransmission(I2C_Address);									// Inizio la trasmissione verso lo Slave interessato
-    Wire.write(FirstByte);													// Spedisco il primo Byte ( Comando )
-    Wire.write(SecondByte);													// Spedisco il secondo Byte ( Argomento )
-    error = Wire.endTransmission();											// Termino la transmissione
+int8_t sendCommandWireSusi(uint8_t I2C_Address, uint8_t FirstByte, uint8_t SecondByte) {                // Invio Comando RCN600 ad uno Slave
+    uint8_t error;                                                                                      // Variabile dove memorizzo se la comunicazione e' andata a buon fine
+    Wire.beginTransmission(I2C_Address);                                                                // Inizio la trasmissione verso lo Slave interessato
+    Wire.write(FirstByte);                                                                              // Spedisco il primo Byte ( Comando )
+    Wire.write(SecondByte);                                                                             // Spedisco il secondo Byte ( Argomento )
+    error = Wire.endTransmission();                                                                     // Termino la transmissione
 
-    if (error == 0) {														// Trasmissione completata con successo
-        return 0;
+    if (error == 0) {                                                                                   // Controllo che la Trasmissione sia stata completata con successo
+        return 0;                                                                                       // Trasmissione completata correttamente
     }
-    else {																	// Errore
-        return -1;
+    else {                                                                                              // Se ci sono stati problemi nella comunicazione
+        return -1;                                                                                      // Restituisco ERRORE
     }
 }
 
