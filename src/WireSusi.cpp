@@ -29,8 +29,8 @@ Rcn600Message                               _Buffer[SUSI_BUFFER_LENGTH];        
 #define	WRITE_CV_BIT                        0b1000000000000000                                          // Identifica il bit 15, se e' 1 allora si vuole scrivere una CV
 
 typedef struct {                                                                                        // Manipolazione CVs
-    uint16_t	cvAddress;                                                                              // Inirizzo CV & bit di Lettura/Scrittura (bit 15) -> massimo indirizzo CV: 32768
-    uint8_t		cvValue;                                                                                // Valore da scrivere/leggere
+    uint16_t    cvAddress;                                                                              // Inirizzo CV & bit di Lettura/Scrittura (bit 15) -> massimo indirizzo CV: 32768
+    uint8_t	    cvValue;                                                                                // Valore da scrivere/leggere
 } CVs_Message;
 
 CVs_Message _cvMessage;                                                                                 // Variabile privata per la gestione delle CVs
