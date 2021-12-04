@@ -1,4 +1,4 @@
-/* LIB_VERSION: 0.1.2 */
+/* LIB_VERSION: 0.1.3 */
 
 #include "WireSusi.h"														// Inclusione del Header
 
@@ -95,38 +95,48 @@ int16_t readCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress) {		    // Richi
     return -1;																// Se arrivo qui la comunicazione NON E' andata a buon fine -> ERRORE
 }
 
-int16_t writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValue) {
-    uint8_t error;															// Risultato del metodo Wire.endTransmission
-    interrupts();															// Abilito gli Interrupt per la Gestione I2c
-    Wire.beginTransmission(I2C_Address);									// Inizio la trasmissione verso lo Slave interessato
-    Wire.write((uint8_t)((uint16_t)(cvAddress | WRITE_CV_BIT) >> 8));		// Invio gli 8 bit PIU' significativi dell'indirizzo + il bit 15 ( bit indicante la scrittura )
-    Wire.write((uint8_t)(cvAddress & 0xFF));								// Invio gli 8 bit MENO significativi dell'Indirizzo
-    Wire.write((uint8_t)cvValue);											// Invio il nuovo valore della CV
-    error = Wire.endTransmission();											// Termino la transmissione
+int16_t writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValue) {                    // Scrittura CV su uno Slave
+    uint8_t error;                                                                                      // Risultato del metodo Wire.endTransmission
+    interrupts();                                                                                       // Abilito gli Interrupt per la Gestione I2c
+    Wire.beginTransmission(I2C_Address);                                                                // Inizio la trasmissione verso lo Slave interessato
+    Wire.write((uint8_t)((uint16_t)(cvAddress | WRITE_CV_BIT) >> 8));                                   // Invio gli 8 bit PIU' significativi dell'indirizzo + il bit 15 ( bit indicante la scrittura )
+    Wire.write((uint8_t)(cvAddress & 0xFF));                                                            // Invio gli 8 bit MENO significativi dell'Indirizzo
+    Wire.write((uint8_t)cvValue);                                                                       // Invio il nuovo valore della CV
+    error = Wire.endTransmission();                                                                     // Termino la transmissione
 
-    if (error != 0) {														// Se la comunicazione e' andata a buon fine error = 0; altrimenti errore
-        return -1;															// Restituisco l'errore
+    if (error != 0) {                                                                                   // Se la comunicazione e' andata a buon fine error = 0; altrimenti errore
+        return -1;                                                                                      // Restituisco l'errore
     }
 
-#ifdef __AVR__																// Piattaforma AVR -> Funzione 'AVR'
-    _delay_us(SLAVE_CV_OPERATION_WAITING_TIME);								// Attendo che lo slave abbia tempo di elaborare il dato
-#else																		// ALTRE piattaforme supportate da Arduino IDE -> Funzione 'Arduino'
-    delayMicroseconds(SLAVE_CV_OPERATION_WAITING_TIME);						// Attendo che lo slave abbia tempo di elaborare il dato
+#ifdef __AVR__                                                                                          // Piattaforma AVR -> Funzione 'AVR'
+    _delay_us(SLAVE_CV_OPERATION_WAITING_TIME);                                                         // Attendo che lo slave abbia tempo di elaborare il dato
+#else                                                                                                   // ALTRE piattaforme supportate da Arduino IDE -> Funzione 'Arduino'
+    delayMicroseconds(SLAVE_CV_OPERATION_WAITING_TIME);                                                 // Attendo che lo slave abbia tempo di elaborare il dato
 #endif
 
-    Wire.requestFrom(I2C_Address, CVs_MESSAGE_DIMENSION);					// Richiedo la struct di confronto
+    Wire.requestFrom(I2C_Address, CVs_MESSAGE_DIMENSION);                                               // Richiedo la struct di confronto
 
-    _cvMessage.cvAddress = (uint8_t)Wire.read();							// Leggo gli 8 bit PIU' significativi
-    _cvMessage.cvAddress = _cvMessage.cvAddress << 8;						// Sposto gli 8 bit
-    _cvMessage.cvAddress += (uint8_t)Wire.read();							// Leggo gli 8 bit MENO significativi
-    _cvMessage.cvValue = (uint8_t)Wire.read();								// Leggo il valore della CV
+    _cvMessage.cvAddress = (uint8_t)Wire.read();                                                        // Leggo gli 8 bit PIU' significativi
+    _cvMessage.cvAddress = _cvMessage.cvAddress << 8;                                                   // Sposto gli 8 bit
+    _cvMessage.cvAddress += (uint8_t)Wire.read();                                                       // Leggo gli 8 bit MENO significativi
+    _cvMessage.cvValue = (uint8_t)Wire.read();                                                          // Leggo il valore della CV
 
-    _cvMessage.cvAddress &= ~(WRITE_CV_BIT);								// Rimuovo il bit 15 (bit indicante la Scrittura)
+    Serial.print("Richiesti: ");  Serial.print(cvAddress); Serial.print(" "); Serial.println(cvValue);
+    Serial.print("Ricevuti: ");  Serial.print(_cvMessage.cvAddress); Serial.print(" "); Serial.println(_cvMessage.cvValue);
 
-    if (_cvMessage.cvAddress == cvAddress) {								// Controllo che la Comunicazione sia avvenuta Correttamente
-        return _cvMessage.cvValue;											// Restituisco il valore della CV
+    _cvMessage.cvAddress &= ~(WRITE_CV_BIT);                                                            // Rimuovo il bit 15 (bit indicante la Scrittura) nel caso Non lo avesse gia' fatto lo Slave
+
+    Serial.print("Ricevuti Corretti: ");  Serial.print(_cvMessage.cvAddress); Serial.print(" "); Serial.println(_cvMessage.cvValue);
+
+    if (_cvMessage.cvAddress == cvAddress) {                                                            // Controllo che la Comunicazione sia avvenuta Correttamente
+        if (_cvMessage.cvValue == cvValue) {                                                            // Controllo che il valore letto Post Scrittura corrisponda a quello richiesto
+            return _cvMessage.cvValue;                                                                  // Restituisco il valore della CV
+        }
+        else {                                                                                          // In Caso negativo Errore
+            return -1;
+        }
     }
-    return -1;																// Se arrivo qui la comunicazione NON E' andata a buon fine -> ERRORE
+    return -1;                                                                                          // Se arrivo qui la comunicazione NON E' andata a buon fine -> ERRORE
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
