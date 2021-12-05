@@ -71,7 +71,7 @@ int8_t	sendCommandWireSusi(uint8_t I2C_Address, uint8_t FirstByte, uint8_t Secon
   - Il Primo Byte del Messaggio ( Comando )
   - Il Secondo Byte del Messaggio ( Argomento )
 - Restituisce:
-  - 0 Messaggio inviato, -1 in caso di Errore
+  - 0 Messaggio inviato, -1 in caso di Errore di Trasmissione, -2 Valore CV dopo scrittura non uguale al richiesto
 
 ------------
 

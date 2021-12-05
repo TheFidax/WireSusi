@@ -47,7 +47,9 @@ int16_t	readCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress);
 *		- l'indirizzo della CV che si vuole Scrivere
 *		- il Valore della CV da Scrivere
 *	Restituisce:
-*		- il Valore della CV scritto, -1 Errore indirizzo CV, -2 Errore nuovo valore CV
+*		- il Valore della CV scritto
+        - -1 Errore indirizzo CV
+        - -2 Errore nuovo valore CV
 */
 int16_t	writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValue);
 
