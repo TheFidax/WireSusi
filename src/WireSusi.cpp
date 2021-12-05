@@ -1,4 +1,4 @@
-/* LIB_VERSION: 0.1.2 */
+/* LIB_VERSION: 0.1.3 */
 
 #include "WireSusi.h"                                                                                   // Inclusione del Header
 
@@ -124,7 +124,12 @@ int16_t writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValu
     _cvMessage.cvAddress &= ~(WRITE_CV_BIT);                                                            // Rimuovo il bit 15 (bit indicante la Scrittura) nel caso Non lo avesse gia' fatto lo Slave
 
     if (_cvMessage.cvAddress == cvAddress) {                                                            // Controllo che la Comunicazione sia avvenuta Correttamente
-        return _cvMessage.cvValue;                                                                      // Restituisco il valore letto della CV
+        if (_cvMessage.cvValue == cvValue) {                                                            // Se il nuovo valore della CV corrisponde a quello richiesto
+            return _cvMessage.cvValue;                                                                  // Restituisco il valore letto della CV
+        }
+        else {                                                                                          // Se il nuovo valore CV e' diverso da quello richiesto
+            return -2;                                                                                  // Errore Nuovo valore CV
+        }
     }
     return -1;                                                                                          // Se arrivo qui la comunicazione NON E' andata a buon fine -> ERRORE
 }
