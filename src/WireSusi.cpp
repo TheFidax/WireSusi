@@ -153,12 +153,12 @@ Rcn600Message* searchFreeMessage(void) {                                        
 void setNextMessage(Rcn600Message* nextMessage) {                                                       // Inserisco uno Slot nella coda di decodifica
     Rcn600Message* p = _BufferPointer;                                                                  // Variabile che mi serve per scorrere la coda di decodifica senza interferire con essa
 
-    if (p != NULL) {                                                                                    // Ce'e' Almeno un messaggio in coda 
-        while (p->nextMessage != NULL) {                                                                // Scorro fino a trovare l'ultimo elemento
-            p = p->nextMessage;                                                                         
+    if (p != NULL) {                                                                                    // C'e' almeno un messaggio in coda 
+        while (p->nextMessage != NULL) {                                                                // Se c'e' un messagio dopo quello corrente
+            p = p->nextMessage;                                                                         // Il messagio successivo diventa quello corrente
         }
-
-        p->nextMessage = nextMessage;
+                                                                                                        // Arrivato alla coda
+        p->nextMessage = nextMessage;                                                                   // Imposto il messaggio passato come successivo a quello attuale
     }
     else {                                                                                              // In caso di nessun messaggio in coda
         _BufferPointer = nextMessage;                                                                   // Questo sara' il prossimo messaggio in coda di decodifica
