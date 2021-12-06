@@ -1,4 +1,4 @@
-/* LIB_VERSION: 0.1.3 */
+/* LIB_VERSION: 0.1.4 */
 
 #include "WireSusi.h"                                                                                   // Inclusione del Header
 
@@ -24,7 +24,6 @@ Rcn600Message                               _Buffer[SUSI_BUFFER_LENGTH];        
 
 /* Manipolazione CVs */
 #define ERROR_CV_OPERATION                  129                                                         // Valore Simbolico che rappresenta un Errore nella Gestione delle CVs
-#define	SLAVE_CV_OPERATION_WAITING_TIME     100                                                         // Tempo (in uS) che il Master attende mentre lo Slave esegue un'operazione sulle CVs
 #define CVs_MESSAGE_DIMENSION               (uint8_t)3                                                  // Dimensione Messaggio Manipolazione CVs
 #define	WRITE_CV_BIT                        0b1000000000000000                                          // Identifica il bit 15, se e' 1 allora si vuole scrivere una CV
 
@@ -77,9 +76,9 @@ int16_t readCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress) {              
     }
 
 #ifdef __AVR__                                                                                          // Piattaforma AVR -> Funzione 'AVR'
-    _delay_us(SLAVE_CV_OPERATION_WAITING_TIME);                                                         // Attendo che lo slave abbia tempo di elaborare il dato
+    _delay_us(100);                                                                                     // Attendo che lo slave abbia tempo di elaborare il dato (100uS)
 #else                                                                                                   // ALTRE piattaforme supportate da Arduino IDE -> Funzione 'Arduino'
-    delayMicroseconds(SLAVE_CV_OPERATION_WAITING_TIME);                                                 // Attendo che lo slave abbia tempo di elaborare il dato
+    delayMicroseconds(100);                                                                             // Attendo che lo slave abbia tempo di elaborare il dato (100uS)
 #endif
 
     Wire.requestFrom(I2C_Address, CVs_MESSAGE_DIMENSION);                                               // Richiedo la i dati di confronto
@@ -109,9 +108,9 @@ int16_t writeCVsWireSusi(uint8_t I2C_Address, uint16_t cvAddress, uint8_t cvValu
     }
 
 #ifdef __AVR__                                                                                          // Piattaforma AVR -> Funzione 'AVR'
-    _delay_us(SLAVE_CV_OPERATION_WAITING_TIME);                                                         // Attendo che lo slave abbia tempo di elaborare il dato
+    _delay_ms(5);                                                                                       // Attendo che lo slave abbia tempo di elaborare il dato (5mS)
 #else                                                                                                   // ALTRE piattaforme supportate da Arduino IDE -> Funzione 'Arduino'
-    delayMicroseconds(SLAVE_CV_OPERATION_WAITING_TIME);                                                 // Attendo che lo slave abbia tempo di elaborare il dato
+    delay(5);                                                                                           // Attendo che lo slave abbia tempo di elaborare il dato (5mS)
 #endif
 
     Wire.requestFrom(I2C_Address, CVs_MESSAGE_DIMENSION);                                               // Richiedo la struct di confronto
