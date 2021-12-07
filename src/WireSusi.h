@@ -1,7 +1,7 @@
 #ifndef WIRE_SUSI_h
 #define WIRE_SUSI_h
 
-/* LIB_VERSION: 0.1.3 */
+/* LIB_VERSION: 0.1.4 */
 
 #include "Arduino.h"                                                // Libreria per le funzioni tipiche dell'Arduino IDE
 
