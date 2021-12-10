@@ -26,9 +26,6 @@ void setup() {
     Wire.begin(1);                                                              // Imposto la libreria Wire come Master del bus con l'indirizzo Master 1
     Wire.setClock(400000);                                                      // Imposto la frequenza del bus I2c a 400kHz (Fast I2c)
 
-    UPDATE_EEPROM(1, 1);                                                        // Aggiorno gli 8 bit meno significativi per avere valore 1
-    UPDATE_EEPROM(9, 0);                                                        // Aggiorno gli 8 bit piu' significativi per avere valore 0
-
     DccAddress = READ_EEPROM(9);                                                // Leggo gli 8 bit piu' significativi
     DccAddress = DccAddress << 8;                                               // Traslo a sinistra gli 8 bit
     DccAddress |= READ_EEPROM(1);                                               // Aggiungo gli 8 bit meno significativi
