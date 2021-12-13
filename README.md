@@ -30,6 +30,6 @@ Le Api per la libreria sono nel file "[readme.md](https://github.com/TheFidax/Wi
 
 # Esempi di Utilizzo
 Sotto la cartella "[examples](https://github.com/TheFidax/WireSusi/tree/main/examples)" sono disponibili esempi sia per i dispositivi [Slave](https://github.com/TheFidax/WireSusi/tree/main/examples/Slave) che [Master](https://github.com/TheFidax/WireSusi/tree/main/examples/Master).</br>
-Sotto la cartella *Master* e' disponibile un [esempio](https://github.com/TheFidax/WireSusi/tree/main/examples/Master/LedBuiltin_ReadWriteCVs) su come utilizzare il bus [Rcn600](https://github.com/TheFidax/Rcn600) per pilotare device *SusiOverI2c*.</br>
+Sotto la cartella *Master* e' disponibile un [esempio](https://github.com/TheFidax/WireSusi/tree/main/examples/Master/LedBuiltin_ReadWriteCVs) su come utilizzare il bus [Rcn600](https://github.com/TheFidax/Rcn600) per pilotare device *WireSusi*.</br>
 
 ------------
