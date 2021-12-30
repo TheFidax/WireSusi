@@ -4,7 +4,7 @@
 */
 
 #ifndef __AVR__                                                                 // Se la piattaforma NON e' AVR -> Errore!
-    #error "Esempio COmatibile solo con AVR!"                                   // Errore! Esempio compatibile solo con schede AVR!
+    #error "Esempio Compatibile solo con AVR!"                                  // Errore! Esempio compatibile solo con schede AVR!
 #endif
 
 #include  <avr/eeprom.h>                                                        // Gestione della EEPROM
