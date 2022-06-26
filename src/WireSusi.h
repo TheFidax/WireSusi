@@ -3,7 +3,7 @@
 
 /* LIB_VERSION: 0.1.4 */
 
-#include "Arduino.h"                                                // Libreria per le funzioni tipiche dell'Arduino IDE
+#include <Arduino.h>                                                // Libreria per le funzioni tipiche dell'Arduino IDE
 
 #include <stdint.h>                                                 // Libreria per i tipi "uintX_t"
 #include <Wire.h>                                                   // Libreria per la gestione dell'interfaccia I2c
