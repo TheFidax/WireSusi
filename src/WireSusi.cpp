@@ -205,7 +205,7 @@ void onReceiveWireSusi(int nBytes) {                                            
                 if (notifySusiCVWrite) {                                                                // Controllo che sia presente un sistema di memorizzazione CVs
                     _cvMessage.cvAddress &= ~(WRITE_CV_BIT);                                            // Rimuovo il bit 15 (bit indicante la Scrittura)
                     if (_cvMessage.cvAddress == 8 || _cvMessage.cvAddress == 900 || _cvMessage.cvAddress == 940 || _cvMessage.cvAddress == 980) {       // Controllo se non si vuole fare un reset
-                        if (_cvMessage.cvValue == 13) {                                                                                                 // Si vuole fare un reset
+                        if (_cvMessage.cvValue == 8) {                                                                                                  // Si vuole fare un reset
                             if (notifyCVResetFactoryDefault) {                                                                                          // Controllo se' disponibile la funzione per fare il reset
                                 notifyCVResetFactoryDefault();                                                                                          // Eseguo il reset delle CVs
                             }
