@@ -208,7 +208,14 @@ void onReceiveWireSusi(int nBytes) {                                            
                         if (_cvMessage.cvValue == 13) {                                                                                                 // Si vuole fare un reset
                             if (notifyCVResetFactoryDefault) {                                                                                          // Controllo se' disponibile la funzione per fare il reset
                                 notifyCVResetFactoryDefault();                                                                                          // Eseguo il reset delle CVs
+                                _cvMessage.cvValue = 8;                                                                                                 // A reset completato restituisco il valore
                             }
+                            else {
+                                _cvMessage.cvValue = ERROR_CV_OPERATION;                                                                                // Utilizzzo un valore simbolico
+                            }
+                        }
+                        else {
+                            _cvMessage.cvValue = ERROR_CV_OPERATION;                                                                                    // Utilizzzo un valore simbolico
                         }
                     }
                     else {
