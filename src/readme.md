@@ -294,7 +294,7 @@ void notifyCVResetFactoryDefault(void);
 - Returns:
   - None
 
-**N.B.**: Per eseguire un reset delle CVs e' necessario scrivere il valore **13** in una delle seguenti CVs: *8, 900, 940, 980*.
+**N.B.**: Per eseguire un reset delle CVs e' necessario scrivere il valore **8** in una delle seguenti CVs: *8, 900, 940, 980*.
 
 ------------
 
