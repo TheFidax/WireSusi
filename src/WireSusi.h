@@ -1,7 +1,7 @@
 #ifndef WIRE_SUSI_h
 #define WIRE_SUSI_h
 
-/* LIB_VERSION: 0.1.5 */
+/* LIB_VERSION: 0.1.6 */
 
 #include <Arduino.h>                                                // Libreria per le funzioni tipiche dell'Arduino IDE
 
@@ -91,7 +91,7 @@ extern "C" {
     *	Restituisce:
     *		- Nulla
     */
-    extern void onReceiveWireSusiExternalHanlde(uint8_t nBytes) __attribute__((weak));
+    extern void onReceiveWireSusiExternalHandle(uint8_t nBytes) __attribute__((weak));
     /*
     *	notifySusiRawMessage() viene invocato ogni volta che è presente un messaggio (2 Byte) da decodificare. NON viene invocato per i Messaggi di Manipolazione CVs. Mostra il messaggio Grezzo: NON DECODIFICATO.
     *	Input:

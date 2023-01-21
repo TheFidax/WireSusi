@@ -106,7 +106,7 @@ Le seguenti funzioni CallBack sono **facoltative** (definiti come 'extern' alla 
 ------------
 
 ```c
-void onReceiveWireSusiExternalHanlde(uint8_t nBytes);
+void onReceiveWireSusiExternalHandle(uint8_t nBytes);
 ```
 Handle **Facoltativo**, permette all'utente di definire azioni in caso di comandi non riconosciuti (dimensione maggiore di 3):
 * Input:

@@ -1,4 +1,4 @@
-/* LIB_VERSION: 0.1.5 */
+/* LIB_VERSION: 0.1.6 */
 
 #include "WireSusi.h"                                                                                   // Inclusione del Header
 
@@ -236,8 +236,8 @@ void onReceiveWireSusi(int nBytes) {                                            
             break;
         }
         default: {                                                                                      // Dimensioni non gestite, controllo se e' presente un Handle esterno	
-            if (onReceiveWireSusiExternalHanlde) {                                                      // Controllo se l'utente ha definito un Handle esterno
-                onReceiveWireSusiExternalHanlde(nBytes);                                                // Chiamo l'Handle esterno
+            if (onReceiveWireSusiExternalHandle) {                                                      // Controllo se l'utente ha definito un Handle esterno
+                onReceiveWireSusiExternalHandle(nBytes);                                                // Chiamo l'Handle esterno
             }
 
             while (Wire.available() > 0) {                                                              // Se sono avanzati dati nel Buffer
